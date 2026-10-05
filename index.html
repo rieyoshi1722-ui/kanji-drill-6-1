@@ -223,10 +223,10 @@ var K=[
 
 {v:'下',u:1,c:'縦',on:'ジュウ',kun:'たて',n:16,look:['従','維'],
  s:[['道が縦横に走る。','縦横','[じゅう]おう'],['縦書きで文を書く。','縦書き','[たて]がき']],
- w:[['縦断','[じゅう]だん'],['縦笛','[たて]ぶえ'],['縦糸','[たて]いと']]},
+ w:[['縦断','[じゅう]だん'],['操縦','{操|そう}[じゅう]'],['縦笛','[たて]ぶえ'],['縦糸','[たて]いと']]},
 {v:'下',u:1,c:'頂',on:'チョウ',kun:'いただく・いただき',n:11,look:['項','須'],
  s:[['山頂を目ざして歩く。','山頂','さん[ちょう]'],['雪を頂く山。','頂く','[いただ]く']],
- w:[['頂上','[ちょう]じょう'],['頂点','[ちょう]てん'],['登頂','とう[ちょう]']]},
+ w:[['頂上','[ちょう]じょう'],['有頂天','う[ちょう]てん','nr'],['頂点','[ちょう]てん'],['登頂','とう[ちょう]']]},
 {v:'下',u:1,c:'忠',on:'チュウ',kun:'',n:8,look:['患','思'],
  s:[['忠誠をちかう。','忠誠','[ちゅう]せい'],['兄の忠告に従う。','忠告','[ちゅう]こく']],
  w:[['忠義','[ちゅう]ぎ'],['忠犬','[ちゅう]けん'],['忠実','[ちゅう]じつ']]},
@@ -257,7 +257,7 @@ var K=[
 
 {v:'下',u:2,c:'泉',on:'セン',kun:'いずみ',n:9,look:['原','線'],
  s:[['旅館の温泉に入る。','温泉','おん[せん]'],['泉の水をくむ。','泉','[いずみ]']],
- w:[['源泉','げん[せん]']]},
+ w:[['源泉','げん[せん]'],['鉱泉','こう[せん]']]},
 {v:'下',u:2,c:'裏',on:'',kun:'うら',n:13,look:['表','衷'],
  s:[['裏庭の花だん。','裏庭','[うら]にわ'],['葉の裏側を見る。','裏側','[うら]がわ']],
  w:[['裏表','[うら]おもて'],['裏返す','[うら]がえす'],['裏づけ','[うら]づけ'],['裏表紙','[うら]びょうし']]},
@@ -311,7 +311,7 @@ var K=[
  w:[['糖類','[とう]るい'],['角砂糖','かくさ[とう]'],['黒砂糖','くろさ[とう]'],['ぶどう糖','ぶどう[とう]']]},
 {v:'下',u:3,c:'紅',on:'コウ・ク',kun:'べに',n:9,look:['組','絹'],
  s:[['紅茶をカップに注ぐ。','紅茶','[こう]ちゃ'],['姉が口紅をぬる。','口紅','くち[べに]']],
- w:[['紅葉','[こう]よう'],['紅白','[こう]はく']]},
+ w:[['紅葉','[こう]よう'],['紅白','[こう]はく'],['紅梅','[こう]{梅|ばい}'],['紅潮','[こう]{潮|ちょう}']]},
 {v:'下',u:3,c:'口',on:'コウ・ク',kun:'くち',n:3,look:['日','田'],
  s:[['明るい口調で話す。','口調','[く]ちょう']],w:[]}
 ];
@@ -460,16 +460,19 @@ var WS={
 'ぶどう糖':'ぶどう糖はエネルギーになる。',
 '紅葉':'山の紅葉を見に行く。',
 '紅白':'運動会で紅白に分かれる。',
+'操縦':'飛行機を操縦する。','有頂天':'ほめられて有頂天になる。','鉱泉':'鉱泉でゆっくりする。','紅梅':'庭に紅梅がさく。','紅潮':'ほおが紅潮する。',
 '遺失物':'駅で遺失物をとどける。','遺品':'祖父の遺品を整理する。','遺書':'歴史上の人物の遺書を読む。','遺作':'画家の遺作を見る。'
 };
 var ITEMS=[];
-function addItem(k,id,t,w,y){
+function addItem(k,id,t,w,y,fl){
+  var yd=y.replace(/\{(.)\|(.*?)\}/g,'$1').replace(/[\[\]]/g,'');
+  y=y.replace(/\{(.)\|(.*?)\}/g,'$2');
   var m=y.match(/^(.*?)\[(.+?)\](.*)$/);
-  ITEMS.push({id:k.c+id,k:k,t:t,w:w,y:m[1]+m[2]+m[3],pre:m[1],r:m[2],post:m[3]});
+  ITEMS.push({id:k.c+id,k:k,t:t,w:w,y:m[1]+m[2]+m[3],yd:yd,nr:fl==='nr',pre:m[1],r:m[2],post:m[3]});
 }
 K.forEach(function(k){
   k.s.forEach(function(a,i){addItem(k,'s'+i,a[0],a[1],a[2])});
-  k.w.forEach(function(a,i){addItem(k,'w'+i,WS[a[0]]||a[0],a[0],a[1])});
+  k.w.forEach(function(a,i){addItem(k,'w'+i,WS[a[0]]||a[0],a[0],a[1],a[2])});
 });
 var ALLR=[];ITEMS.forEach(function(it){if(ALLR.indexOf(it.r)<0)ALLR.push(it.r)});
 
@@ -504,19 +507,19 @@ function pickRecent(kind,p,n){
   return pick;
 }
 var SEEN=ld('seen',{read:[],write:[],rc:0,wc:0});
-function vitems(v){return ITEMS.filter(function(it){return it.k.v===v})}
-function seenN(kind,v){var a=SEEN[kind];return vitems(v).filter(function(it){return a.indexOf(it.id)>=0}).length}
+function vitems(v,kind){return ITEMS.filter(function(it){return it.k.v===v&&!(kind==='read'&&it.nr)})}
+function seenN(kind,v){var a=SEEN[kind];return vitems(v,kind).filter(function(it){return a.indexOf(it.id)>=0}).length}
 function markSeen(kind,id){
   var a=SEEN[kind],v=S.vol;
   if(a.indexOf(id)<0)a.push(id);
-  var vi=vitems(v).map(function(it){return it.id});
+  var vi=vitems(v,kind).map(function(it){return it.id});
   if(vi.every(function(x){return a.indexOf(x)>=0})){SEEN[kind]=a.filter(function(x){return vi.indexOf(x)<0});SEEN[kind==='read'?'rc':'wc']++}
   sv('seen',SEEN);
 }
 function takeTest(kind,n,exclude){
   var seen=SEEN[kind];
   var ok=function(it){return exclude.indexOf(it.id)<0};
-  var base=vitems(S.vol);
+  var base=vitems(S.vol,kind);
   var fresh=shuffle(base.filter(function(it){return ok(it)&&seen.indexOf(it.id)<0})).slice(0,n);
   if(fresh.length<n){
     var ids=fresh.map(function(it){return it.id});
@@ -532,7 +535,7 @@ function track(kind,it,ok){
   sv('miss',MISS);
 }
 function pool(kind){
-  return ITEMS.filter(function(it){return it.k.v===S.vol&&S.units.indexOf(it.k.u)>=0&&(!S.missOnly||MISS[kind+':'+it.id])});
+  return ITEMS.filter(function(it){return it.k.v===S.vol&&!(kind==='read'&&it.nr)&&S.units.indexOf(it.k.u)>=0&&(!S.missOnly||MISS[kind+':'+it.id])});
 }
 
 /* お手本の線データ（animCJK / Make Me a Hanzi 由来、Hanzi Writer JP 経由）。座標は1024四方 */
@@ -738,7 +741,7 @@ function mkSame(h){var o=shuffle(h[3]);return{mode:'same',h:h,opts:o,ans:o.index
 function sent(it,mode){
   var t=it.t,w=it.w,i=t.indexOf(w),pre=t.slice(0,i),post=t.slice(i+w.length),mid;
   if(mode==='write')mid='<span class="mark">'+w.replace(it.k.c,'<i class="box"></i>')+'</span>';
-  else if(mode==='paper'||mode==='hand')mid='<span class="mark">'+it.y+'</span>';
+  else if(mode==='paper'||mode==='hand')mid='<span class="mark">'+it.yd+'</span>';
   else mid='<span class="mark">'+w+'</span>';
   var inner=pre+mid+post;
   var ctx=(mode==='write'||mode==='paper'||mode==='ans'||mode==='hand')?' ctx':'';
@@ -777,7 +780,7 @@ function homeHTML(){
   +(S.vol==='上'?mode('same','同','同じ読み方の漢字','12の あかねプラス（12問）'):'')
   +mode('test','試','50問テスト','読み25問 ＋ 書き25問。何回かやると、全部の問題が出ます','test')
   +'</div></section>'
-  +'<section class="sec"><p class="help">50問テストで出た問題（'+S.vol+'）：読み '+seenN('read',S.vol)+' / '+vitems(S.vol).length+'　書き '+seenN('write',S.vol)+' / '+vitems(S.vol).length+(SEEN.rc||SEEN.wc?'（ぜんぶ出きった回数 読み'+SEEN.rc+'・書き'+SEEN.wc+'）':'')+'</p>'
+  +'<section class="sec"><p class="help">50問テストで出た問題（'+S.vol+'）：読み '+seenN('read',S.vol)+' / '+vitems(S.vol,'read').length+'　書き '+seenN('write',S.vol)+' / '+vitems(S.vol,'write').length+(SEEN.rc||SEEN.wc?'（ぜんぶ出きった回数 読み'+SEEN.rc+'・書き'+SEEN.wc+'）':'')+'</p>'
   +'<div class="chips"><button class="back" data-a="resetSeen">'+(S.confirmReset?'もう一度おすと リセット':'出た問題の きろくを リセット')+'</button></div></section>'
   +'<p class="help">「書き取り（紙）」は、紙に書いてから 自分で○×をつけます。「デジタル書き」は、画面に書くと お手本と重ねて見られます（目安なので ○×は 自分で決めます）。まちがえた問題は 記録されます。</p>'
   +'<p class="help credit">手書きモードの お手本データは、animCJK と Make Me a Hanzi（LGPL）が元になっています。</p>';
@@ -848,7 +851,7 @@ function listHTML(){
   UN[S.vol].forEach(function(u){
     var ks=K.filter(function(k){return k.v===S.vol&&k.u===u});
     out+='<div class="unit"><h2>'+u+'</h2><span>'+ks.length+'字</span></div><div class="kgrid">'+ks.map(function(k){
-      var words=k.w.map(function(a){return '<li><ruby>'+a[0]+'<rt>'+a[1].replace(/[\[\]]/g,'')+'</rt></ruby></li>'}).join('');
+      var words=k.w.map(function(a){return '<li><ruby>'+a[0]+'<rt>'+a[1].replace(/\{(.)\|(.*?)\}/g,'$2').replace(/[\[\]]/g,'')+'</rt></ruby></li>'}).join('');
       var ex=k.s.map(function(a){return '<p class="ex">'+a[0].replace(a[1],'<b>'+a[1]+'</b>')+'</p>'}).join('');
       return '<article class="kcard">'+tj(k.c,'4.5rem')+'<div class="info"><p class="meta"><b>'+k.n+'画</b>'+(k.on?'　音 '+k.on:'')+(k.kun?'　訓 '+k.kun:'')+'</p><ul class="wl">'+words+'</ul>'+ex+'</div></article>';
     }).join('')+'</div>';
